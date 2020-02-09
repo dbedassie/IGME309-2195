@@ -1,4 +1,7 @@
 #include "AppClass.h"
+
+bool right = true;
+
 void Application::InitVariables(void)
 {
 	//Make MyMesh object
@@ -20,6 +23,9 @@ void Application::Update(void)
 	//Is the first person camera active?
 	CameraRotation();
 }
+
+
+
 void Application::Display(void)
 {
 	// Clear the screen
@@ -29,7 +35,58 @@ void Application::Display(void)
 	matrix4 m4Projection = m_pCameraMngr->GetProjectionMatrix();
 	matrix4 m4Model = ToMatrix4(m_qArcBall);
 
+	int spaceInvader[8][11] = {
+		{0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0},
+		{0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0},
+		{0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0},
+		{0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1},
+		{1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1},
+		{0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0}
+	};
+
+	float x;
+	float y;
+	float z = 0.0f;
+	static float value = 0.0f;
+	
+
 #pragma region Space Invader Creation
+
+	for (int i = 0; i < 8; i++)
+	{
+		for (int j = 0; j < 11; j++)
+		{
+			if (spaceInvader[i][j] == 1)
+			{
+				x = ((1.0f * j) - 5) + value;
+				y = (-1.0f * i) + 5;
+
+				m_pMesh->Render(m4Projection, m4View, m4Model * glm::translate(vector3(x, y, z)));
+			}
+			
+			if (right)
+			{
+				value += 0.001f;
+			}
+			else
+			{
+				value -= 0.001f;
+			}
+
+			if (value > 5.0f || value < -5.0f)
+			{
+				right = !right;
+			}
+		}
+	}
+
+
+
+	/*
+		- The more "simple" way to making them I guess.
+
 	m_pMesh->Render(m4Projection, m4View, m4Model);
 	m_pMesh->Render(m4Projection, m4View, m4Model * glm::translate(vector3 (0, 1, 0)));
 	m_pMesh->Render(m4Projection, m4View, m4Model * glm::translate(vector3(0, 2, 0)));
@@ -76,17 +133,9 @@ void Application::Display(void)
 	m_pMesh->Render(m4Projection, m4View, m4Model * glm::translate(vector3(-5, 0, 0)));
 	m_pMesh->Render(m4Projection, m4View, m4Model * glm::translate(vector3(-5, -1, 0)));
 	m_pMesh->Render(m4Projection, m4View, m4Model * glm::translate(vector3(-5, -2, 0)));
-#pragma endregion
 
-#pragma region Space Invader Movement
-#pragma endregion
-	
-
-	/*
-		- Create loop where Invader constantly moves to the right
-			- Make loop where it goes through fps to move?
 	*/
-	
+#pragma endregion	
 
 	// draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();
