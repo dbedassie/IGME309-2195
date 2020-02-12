@@ -276,7 +276,35 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	
+	float xPos = 0.0f;
+	float yPos = a_fHeight;
+	float zPos = 0.0f;
+
+	float previousX = 0.0f;
+	float previousZ = 0.0f;
+
+	const float originX = 0.0f;
+	const float originZ = 0.0f;
+
+	float angle = glm::radians(360.0f / a_nSubdivisions);	// Knows how to divide the angle into equal proportions based on amount of subdivisions
+	float currentAngle = angle;
+	
+	for (int i = 0; i < a_nSubdivisions + 1; i++)
+	{
+		// These two will 'do the math' to find out where to plot the next point in the x and z directions
+		xPos = originX + a_fRadius * cos(currentAngle);
+		zPos = originZ + a_fRadius * sin(currentAngle);
+
+		// Making the triangles along the side of the cone, and the bottom!
+		AddTri(vector3(0, -yPos, 0), vector3(previousX, -yPos, previousZ), vector3(xPos, -yPos, zPos));
+		AddTri(vector3(previousX, -yPos, previousZ), vector3(originX, yPos, originZ), vector3(xPos, -yPos, zPos));
+
+		previousX = xPos;
+		previousZ = zPos;
+		currentAngle += angle;
+	}
+
 	// -------------------------------
 
 	// Adding information about color
@@ -300,7 +328,38 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	float xPos = 0.0f;
+	float yPos = a_fHeight;
+	float zPos = 0.0f;
+
+	float previousX = 0.0f;
+	float previousY = 0.0f;
+	float previousZ = 0.0f;
+
+	const float originX = 0.0f;
+	const float originZ = 0.0f;
+
+	float angle = glm::radians(360.0f / a_nSubdivisions);
+	float currentAngle = angle;
+
+	for (int i = 0; i < a_nSubdivisions + 1; i++)
+	{
+		xPos = originX + a_fRadius * cos(currentAngle);
+		zPos = originZ + a_fRadius * sin(currentAngle);
+
+		AddTri(vector3(originX, -yPos, originZ), vector3(previousX, -yPos, previousZ), vector3(xPos, -yPos, zPos));	// Top of cylinder
+		AddTri(vector3(xPos, yPos, zPos), vector3(previousX, yPos, previousZ), vector3(originX, yPos, originZ));	// Bottom of cylinder
+
+		if (i != 0)
+		{
+			AddQuad(vector3(xPos, -yPos, zPos), vector3(previousX, -yPos, previousZ), vector3(xPos, yPos, zPos), vector3(previousX, yPos, previousZ)); // Quads on side of cylinder
+		}
+
+		previousX = xPos;
+		previousZ = zPos;
+		currentAngle += angle;
+	}
+
 	// -------------------------------
 
 	// Adding information about color
@@ -330,7 +389,46 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	float outXPos = 0.0f;
+	float inXPos = 0.0f;
+	float outZPos = 0.0f;
+	float inZPos = 0.0f;
+
+	float yPos = a_fHeight;
+
+	float previousXO = 0.0f;	// previous x outer
+	float previousXI = 0.0f;	// previous x inner
+	float previousZO = 0.0f;	// previous z outer
+	float previousZI = 0.0f;	// previous z inner
+
+	const float originX = 0.0f;
+	const float originZ = 0.0f;
+
+	float angle = glm::radians(360.0f / a_nSubdivisions);
+	float currentAngle = angle;
+
+	for (int i = 0; i < a_nSubdivisions + 1; i++)
+	{
+		outXPos = originX + a_fOuterRadius * cos(currentAngle);
+		inXPos = originX + a_fInnerRadius * cos(currentAngle);
+
+		outZPos = originZ + a_fOuterRadius * sin(currentAngle);
+		inZPos = originZ + a_fInnerRadius * sin(currentAngle);
+
+		if (i > 0)
+		{
+			AddQuad(vector3(outXPos, yPos, outZPos), vector3(previousXO, yPos, previousZO), vector3(inXPos, yPos, inZPos), vector3(previousXI, yPos, previousZI));	// Top tube
+			AddQuad(vector3(inXPos, -yPos, inZPos), vector3(previousXI, -yPos, previousZI), vector3(outXPos, -yPos, outZPos), vector3(previousXO, -yPos, previousZO));	// Bottom tube
+			AddQuad(vector3(outXPos, -yPos, outZPos), vector3(previousXO, -yPos, previousZO), vector3(outXPos, yPos, outZPos), vector3(previousXO, yPos, previousZO));	// Outside tube
+			AddQuad(vector3(previousXI, -yPos, previousZI), vector3(inXPos, -yPos, inZPos), vector3(previousXI, yPos, previousZI), vector3(inXPos, yPos, inZPos));	// Inside tube
+		}
+
+		previousXO = outXPos;
+		previousXI = inXPos;
+		previousZO = outZPos;
+		previousZI = inZPos;
+		currentAngle += angle;
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -362,7 +460,61 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	float a = (a_fOuterRadius - a_fInnerRadius) / 2;
+
+	float c = a_fInnerRadius + a;
+
+	float angle1 = (2.0f * (float)PI) / a_nSubdivisionsA;
+	float angle2 = (2.0f * (float)PI) / a_nSubdivisionsB;
+
+	float currentAngle1 = 0;
+	float currentAngle2 = 0;
+
+	vector3 points[360];
+	vector3 previousPoints[360];
+
+	// Goes through each section of the tube
+	for (int i = 0; i < a_nSubdivisionsB + 1; i++)
+	{
+		if (i != 0)
+		{
+			for (int j = 0; j < a_nSubdivisionsA; j++)
+			{
+				previousPoints[j] = points[j];
+			}
+		}
+
+		// Filling points
+		for (int k = 0; k < a_nSubdivisionsA; k++)
+		{
+			// Parametric formula
+			float x = (c + a * cos(currentAngle2)) * cos(currentAngle1);
+			float y = (c + a * cos(currentAngle2)) * sin(currentAngle1);
+			float z = (a * sin(currentAngle2));
+
+			points[k] = vector3(x, y, z);
+			currentAngle1 += angle1;
+		}
+
+		currentAngle2 += angle2;
+
+		if (i != 0)
+		{	
+			// Drawing quads
+			for (int n = 0; n < a_nSubdivisionsA; n++)
+			{
+				if (n < a_nSubdivisionsA - 1)
+				{
+					AddQuad(previousPoints[n], previousPoints[n + 1], points[n], points[n + 1]);
+				}
+				else
+				{
+					AddQuad(previousPoints[n], previousPoints[0], points[n], points[0]);
+				}
+			}
+		}
+	}
+
 	// -------------------------------
 
 	// Adding information about color
