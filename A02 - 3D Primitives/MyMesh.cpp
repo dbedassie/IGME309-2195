@@ -539,7 +539,81 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	float theta = (2.0f * (float)PI) / a_nSubdivisions;
+	float phi = ((float)PI) / a_nSubdivisions;
+
+	float currentTheta = 0;
+	float currentPhi = phi;
+
+	vector3 points[10];
+	vector3 previousPoints[10];
+
+	vector3 top = vector3(0, 0, a_fRadius);
+	vector3 bottom = vector3(0, 0, -a_fRadius);
+
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		for (int j = 0; j < a_nSubdivisions; j++)
+		{
+			if (i != 0)
+			{
+				previousPoints[j] = points[j];
+			}
+			if (i != a_nSubdivisions - 1)
+			{
+				float xPos = sin(currentPhi) * cos(currentTheta);
+				float yPos = sin(currentPhi) * sin(currentTheta);
+				float zPos = cos(currentPhi);
+
+				points[j] = vector3(xPos, yPos, zPos) * a_fRadius;
+			}
+
+			currentTheta += theta;
+		}
+
+		currentPhi += phi;
+
+		for (int k = 0; k < a_nSubdivisions; k++)
+		{
+			// top of sphere
+			if (i == 0)
+			{
+				if (k < a_nSubdivisions - 1)
+				{
+					AddTri(points[k], points[k + 1], top);
+				}
+				else
+				{
+					AddTri(points[k], points[0], top);
+				}
+			}
+
+			// between the top and bottom
+			else if (i > 0 && i < a_nSubdivisions - 1)
+			{
+				if (k < a_nSubdivisions - 1)
+				{
+					AddQuad(points[k], points[k + 1], previousPoints[k], previousPoints[k + 1]);
+				}
+				else
+				{
+					AddQuad(points[k], points[0], previousPoints[k], previousPoints[0]);
+				}
+			}
+			// bottom
+			else
+			{
+				if (k < a_nSubdivisions - 1)
+				{
+					AddTri(previousPoints[k], bottom, previousPoints[k + 1]);
+				}
+				else
+				{
+					AddTri(previousPoints[k], bottom, previousPoints[0]);
+				}
+			}
+		}
+	}
 	// -------------------------------
 
 	// Adding information about color
